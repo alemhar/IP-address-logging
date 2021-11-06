@@ -30,11 +30,8 @@ Route::get('/', function () {
 Route::get('/dashboard/{id?}', function ($id = 0) {
     
     if($id){
-        //return $id;
         $labels = Label::with('user')->where('ip_id', $id)->get();
-        //return $labels;
     } else {
-        //return 'NONE';
         $labels = null;
     }
     
@@ -46,6 +43,7 @@ Route::get('/dashboard/{id?}', function ($id = 0) {
 })->name('dashboard');
 
 Route::post('/store',[DashboardController::class, 'store'])->name('store');
+Route::put('/update/{id}',[DashboardController::class, 'update'])->name('update');
 
 
 // Route::get('/dashboard', function () {

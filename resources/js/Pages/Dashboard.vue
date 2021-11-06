@@ -101,18 +101,20 @@
 
                                                               <div class="row">
                               <div class="col-6">
-                              <p class="font-weight-bold">IP List</p>    
+                              <h1 class="font-weight-bold"><b>IP List</b></h1>     
                               <table class="table">
                                 <thead>
                                   <tr>
                                     <th scope="col">IP Address</th>
                                     <th scope="col">Label/Comment</th>
+                                    <th scope="col">Edit</th>
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  <tr role="button" @click="getLabels(ip.id)" :key="ip.id" v-for="ip in ips.data" :class="{ 'bg-success': ip.id == current_id }">
-                                    <td>{{ ip.ip_address }}</td>
+                                  <tr role="button" :id="'tr-'+ip.id"  :key="ip.id" v-for="ip in ips.data" :class="{ 'alert alert-dark': ip.id == current_id }">
+                                    <td @click="getLabels(ip.id,ip.ip_address,ip.label)" class="text-primary"><u>{{ ip.ip_address }}</u></td>
                                     <td>{{ ip.label }} </td>
+                                    <td> <button @click="edit(ip.id,ip.ip_address,ip.label)"><i class="fas fa-edit"></i></button> </td>
                                   </tr>
                                 </tbody>
                               </table>
@@ -120,7 +122,7 @@
                               <div v-if="$page.props.auth.user">
                               <form @submit.prevent="submit">
                                 <div class="input-group input-group-sm mb-3">
-                                    <input placeholder="Enter Ip Address" id="ip_address" type="text" class="form-control" v-model="form.ip_address" required autofocus />
+                                    <input placeholder="Enter Ip Address" id="ip_address" type="text" class="form-control" v-model="form.ip_address" required autofocus :disabled="isEditMode"/>
                                     
                                     <input placeholder="Enter Label" id="label" type="text" class="form-control" v-model="form.label" required  />
                                 </div>
@@ -138,25 +140,27 @@
                                     <!-- BreezeButton class="btn btn-success" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
                                         Save
                                     </BreezeButton -->
-                                    <button type="submit" class="btn btn-success" >Save</button>   
+                                    <button type="submit" class="btn btn-dark" >{{ isEditMode ? 'Update' : 'Add' }} </button>   
                                 </div>
                             </form>
                             </div>
 
-                              <Link href="/new" method="get" as="button" type="button" class="btn btn-primary">New</Link>
+                              <!-- Link href="/new" method="get" as="button" type="button" class="btn btn-primary">New</Link -->
                               </div>
                               <div class="col-6">
-                              <h2 class="font-weight-bold">Changes History</h2>    
+                              <h1 class="font-weight-bold"><b>Changes History</b></h1>    
 
                               <table class="table">
                                 <thead>
                                   <tr>
+                                    <th scope="col">Action</th>
                                     <th scope="col">Label/Comment</th>
                                     <th scope="col">User</th>
                                   </tr>
                                 </thead>
                                 <tbody>
                                   <tr :key="label.id" v-for="label in labels">
+                                    <td>{{ label.action }}</td>
                                     <td>{{ label.label }}</td>
                                     <td>{{ label.user.name }}</td>
                                   </tr>
@@ -224,7 +228,10 @@ export default {
                 ip_address: '',
                 label: ''
             }),
-            isIpInvalid: false
+            isIpInvalid: false,
+            isEditMode: false,
+            editId: '',
+
         }
     },
     props: {
@@ -235,20 +242,41 @@ export default {
     },
     methods: {
       getLabels(id){
-        console.log(id);
         this.$inertia.get('/dashboard/'+id);
       },
       submit() {
 
-            // if(!this.form.ip_address.match(/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/g))
-            // {
-            //     this.isIpInvalid = true;
-            //     return false;
-            // }
-            
-            //console.log(this.form);
-            this.form.post(this.route('store'))
-        }
+            if(this.isEditMode){
+                this.form.put('/update/'+this.editId,{
+                    onSuccess: () => {this.form.ip_address = '';this.form.label=''},
+                });
+                this.isEditMode = false;
+            } else {
+
+                // if(!this.form.ip_address.match(/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/g))
+                // {
+                //     this.isIpInvalid = true;
+                //     return false;
+                // }
+                
+                // this.form.post(this.route('store'),{
+                //     onSuccess: () => {this.form.ip_address = '';this.form.label=''},
+                // })
+            }
+        },
+      edit(id,ip_address,label) {
+            this.editId = id;
+            let x = document.getElementsByClassName("alert-dark");
+            let i;
+            for (i = 0; i < x.length; i++) {
+                x[i].classList.remove("alert-dark")
+            }
+            document.getElementById("tr-"+id).classList.add("alert-dark");
+            this.form.ip_address = ip_address;
+            this.form.label = label;
+            this.isEditMode = true;
+              
+        }  
 
     },
     created() {

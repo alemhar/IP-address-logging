@@ -79,7 +79,14 @@ class DashboardController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        
+        $user = auth()->user();
+        $ip = Ip::find($id);
+        $ip->label = $request->label;
+        $label = new Label(['label' => $request->label, 'action'=> 'Updated', 'user_id' => $user->id]);
+        $ip->save();
+        $ip->labels()->save($label);
+        return Redirect::route('dashboard',$ip->id);
     }
 
     /**
