@@ -15,4 +15,9 @@ class Label extends Model
         'label',
         'user_id'
     ];
+
+    public function user()
+    {
+        return $this->BelongsTo(User::class);
+    }
 }

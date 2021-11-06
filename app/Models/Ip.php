@@ -13,5 +13,10 @@ class Ip extends Model
         'ip_address',
         'label'
     ];
-    
+
+    public function labels()
+    {
+        return $this->hasMany(Label::class);
+    }
+
 }
