@@ -9,6 +9,7 @@ class Label extends Model
 {
     use HasFactory;
 
+    
     protected $fillable = [
         'ip_id',
         'action',

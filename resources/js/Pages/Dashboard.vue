@@ -17,7 +17,17 @@
                                     Home
                                 </BreezeNavLink>
                             </div>
-                            
+                            <div class="hidden fixed top-0 right-0 px-6 py-4 sm:block">
+                            <template v-if="!$page.props.auth.user" >
+                                <Link :href="route('login')" class="ml-4 text-sm text-gray-700 underline">
+                                    Log in
+                                </Link>
+
+                                <Link :href="route('register')" class="ml-4 text-sm text-gray-700 underline">
+                                    Register
+                                </Link>
+                            </template>
+                            </div>
                         </div>
 
                         <div class="sm:flex sm:items-center sm:ml-6"  v-if="$page.props.auth.user">
@@ -92,7 +102,6 @@
 
             <!-- Page Content -->
             <main>
-                <!-- slot / -->
                 <div class="py-12">
                     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -121,31 +130,28 @@
                               
                               <div v-if="$page.props.auth.user">
                               <form @submit.prevent="submit">
-                                <div class="input-group input-group-sm mb-3">
+                                <div class="input-group input-group-sm">
                                     <input placeholder="Enter Ip Address" id="ip_address" type="text" class="form-control" v-model="form.ip_address" required autofocus :disabled="isEditMode"/>
                                     
                                     <input placeholder="Enter Label" id="label" type="text" class="form-control" v-model="form.label" required  />
                                 </div>
 
-                                <div class="mt-4">
-                                    <div  v-show="isIpInvalid" class="alert alert-danger" role="alert" style="display: flex;justify-content: center;padding:2px;" >
-                                        <span>Invalid IP Address</span>
+                                <div class="">
+                                    <div  v-show="isIpInvalid" class="alert text-danger" role="alert" style="display: flex;justify-content: center;padding:2px;" >
+                                        <span>*** Invalid IP Address ***</span>
                                     </div>
-
-                                    <!-- input id="label" type="text" class="form-control" v-model="form.label" required  / -->
                                 </div>
                                 
                                 <div class="flex items-center justify-end mt-4">
                                     <Link href="/dashboard" method="get" as="button" type="button" class="btn btn-secondary mr-2">Cancel</Link>
-                                    <!-- BreezeButton class="btn btn-success" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                                        Save
-                                    </BreezeButton -->
+                                    
                                     <button type="submit" class="btn btn-dark" >{{ isEditMode ? 'Update' : 'Add' }} </button>   
                                 </div>
                             </form>
+                            
                             </div>
 
-                              <!-- Link href="/new" method="get" as="button" type="button" class="btn btn-primary">New</Link -->
+                            
                               </div>
                               <div class="col-6">
                               <h1 class="font-weight-bold"><b>Changes History</b></h1>    
@@ -155,7 +161,8 @@
                                   <tr>
                                     <th scope="col">Action</th>
                                     <th scope="col">Label/Comment</th>
-                                    <th scope="col">User</th>
+                                    <th scope="col">By</th>
+                                    <th scope="col">Date</th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -163,9 +170,12 @@
                                     <td>{{ label.action }}</td>
                                     <td>{{ label.label }}</td>
                                     <td>{{ label.user.name }}</td>
+                                    <td>{{ formatDate(label.updated_at) }}</td>
                                   </tr>
                                 </tbody>
                               </table>
+
+                              
                               </div>
                               </div>
 
@@ -179,29 +189,10 @@
             </main>
         </div>
     </div>
-
-
-    <!-- BreezeAuthenticatedLayout>
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Dashboard
-            </h2>
-        </template>
-
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 bg-white border-b border-gray-200">
-                        You're logged in!
-                    </div>
-                </div>
-            </div>
-        </div>
-    </BreezeAuthenticatedLayout -->
+    
 </template>
 
 <script>
-//import BreezeAuthenticatedLayout from '@/Layouts/Authenticated.vue'
 import BreezeApplicationLogo from '@/Components/ApplicationLogo.vue'
 import BreezeDropdown from '@/Components/Dropdown.vue'
 import BreezeDropdownLink from '@/Components/DropdownLink.vue'
@@ -209,81 +200,87 @@ import BreezeNavLink from '@/Components/NavLink.vue'
 import BreezeResponsiveNavLink from '@/Components/ResponsiveNavLink.vue'
 import { Link } from '@inertiajs/inertia-vue3';
 import { Head } from '@inertiajs/inertia-vue3';
+import moment from 'moment';
+
 
 export default {
-    components: {
-        //BreezeAuthenticatedLayout,
-        BreezeApplicationLogo,
-        BreezeDropdown,
-        BreezeDropdownLink,
-        BreezeNavLink,
-        BreezeResponsiveNavLink,
-        Link,
-        Head,
-    },
-    data() {
-        return {
-            showingNavigationDropdown: false,
-            form: this.$inertia.form({
-                ip_address: '',
-                label: ''
-            }),
-            isIpInvalid: false,
-            isEditMode: false,
-            editId: '',
+        components: {
+            BreezeApplicationLogo,
+            BreezeDropdown,
+            BreezeDropdownLink,
+            BreezeNavLink,
+            BreezeResponsiveNavLink,
+            Link,
+            Head,
+        },
+        data() {
+            return {
+                showingNavigationDropdown: false,
+                form: this.$inertia.form({
+                    ip_address: '',
+                    label: ''
+                }),
+                isIpInvalid: false,
+                isEditMode: false,
+                editId: '',
 
-        }
-    },
-    props: {
-        ips: Object,
-        labels: Object,
-        current_id: null
-        
-    },
-    methods: {
-      getLabels(id){
-        this.$inertia.get('/dashboard/'+id);
-      },
-      submit() {
-
-            if(this.isEditMode){
-                this.form.put('/update/'+this.editId,{
-                    onSuccess: () => {this.form.ip_address = '';this.form.label=''},
-                });
-                this.isEditMode = false;
-            } else {
-
-                // if(!this.form.ip_address.match(/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/g))
-                // {
-                //     this.isIpInvalid = true;
-                //     return false;
-                // }
-                
-                // this.form.post(this.route('store'),{
-                //     onSuccess: () => {this.form.ip_address = '';this.form.label=''},
-                // })
             }
         },
-      edit(id,ip_address,label) {
-            this.editId = id;
-            let x = document.getElementsByClassName("alert-dark");
-            let i;
-            for (i = 0; i < x.length; i++) {
-                x[i].classList.remove("alert-dark")
-            }
-            document.getElementById("tr-"+id).classList.add("alert-dark");
-            this.form.ip_address = ip_address;
-            this.form.label = label;
-            this.isEditMode = true;
-              
-        }  
+        props: {
+            ips: Object,
+            labels: Object,
+            current_id: null
+            
+        },
+        methods: {
+            getLabels(id){
+                this.$inertia.get('/dashboard/'+id);
+            },
+            submit() {
 
-    },
-    created() {
-        
-        //this.labels = this.ips.data
+                if(this.isEditMode){
+                    this.form.put('/update/'+this.editId,{
+                        onSuccess: () => {this.form.ip_address = '';this.form.label=''},
+                    });
+                    this.isEditMode = false;
+                } else {
+                    
+                    // Frontend IP Address Validation 
+                    if(!this.form.ip_address.match(/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/g))
+                    {
+                        this.isIpInvalid = true;
+                        return false;
+                    }
+                    
+                    this.form.post(this.route('store'),{
+                        onSuccess: () => {this.form.ip_address = '';this.form.label='';this.isIpInvalid=false;},
+                    })
+                }
+            },
+            edit(id,ip_address,label) {
+                this.editId = id;
+                let x = document.getElementsByClassName("alert-dark");
+                let i;
+                for (i = 0; i < x.length; i++) {
+                    x[i].classList.remove("alert-dark")
+                }
+                document.getElementById("tr-"+id).classList.add("alert-dark");
+                this.form.ip_address = ip_address;
+                this.form.label = label;
+                this.isEditMode = true;
+                
+            },
+            formatDate(updated_at){
+                if (updated_at) {
+                return moment(updated_at).format('MM/DD/YYYY');
+            }  
 
-        console.log(this.labels);
+        },
+        created() {
+            console.log(this.ips.links);
+        }
+    
     }
+
 }
 </script>
