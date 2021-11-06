@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Ip;
+use App\Models\Label;
+use Redirect;
+
 
 class DashboardController extends Controller
 {
@@ -34,7 +38,14 @@ class DashboardController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $user = auth()->user();
+        $ip = new Ip;
+        $ip->ip_address = $request->ip_address;
+        $ip->label = $request->label;
+        $label = new Label(['label' => $request->label, 'action'=> 'Added', 'user_id' => $user->id]);
+        $ip->save();
+        $ip->labels()->save($label);
+        return Redirect::route('dashboard',$ip->id);
     }
 
     /**

@@ -97,7 +97,77 @@
                     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                             <div class="p-6 bg-white border-b border-gray-200">
-                                You're logged in!
+                                
+
+                                                              <div class="row">
+                              <div class="col-6">
+                              <p class="font-weight-bold">IP List</p>    
+                              <table class="table">
+                                <thead>
+                                  <tr>
+                                    <th scope="col">IP Address</th>
+                                    <th scope="col">Label/Comment</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr role="button" @click="getLabels(ip.id)" :key="ip.id" v-for="ip in ips.data" :class="{ 'bg-success': ip.id == current_id }">
+                                    <td>{{ ip.ip_address }}</td>
+                                    <td>{{ ip.label }} </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                              
+                              <div v-if="$page.props.auth.user">
+                              <form @submit.prevent="submit">
+                                <div class="input-group input-group-sm mb-3">
+                                    <input placeholder="Enter Ip Address" id="ip_address" type="text" class="form-control" v-model="form.ip_address" required autofocus />
+                                    
+                                    <input placeholder="Enter Label" id="label" type="text" class="form-control" v-model="form.label" required  />
+                                </div>
+
+                                <div class="mt-4">
+                                    <div  v-show="isIpInvalid" class="alert alert-danger" role="alert" style="display: flex;justify-content: center;padding:2px;" >
+                                        <span>Invalid IP Address</span>
+                                    </div>
+
+                                    <!-- input id="label" type="text" class="form-control" v-model="form.label" required  / -->
+                                </div>
+                                
+                                <div class="flex items-center justify-end mt-4">
+                                    <Link href="/dashboard" method="get" as="button" type="button" class="btn btn-secondary mr-2">Cancel</Link>
+                                    <!-- BreezeButton class="btn btn-success" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                                        Save
+                                    </BreezeButton -->
+                                    <button type="submit" class="btn btn-success" >Save</button>   
+                                </div>
+                            </form>
+                            </div>
+
+                              <Link href="/new" method="get" as="button" type="button" class="btn btn-primary">New</Link>
+                              </div>
+                              <div class="col-6">
+                              <h2 class="font-weight-bold">Changes History</h2>    
+
+                              <table class="table">
+                                <thead>
+                                  <tr>
+                                    <th scope="col">Label/Comment</th>
+                                    <th scope="col">User</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr :key="label.id" v-for="label in labels">
+                                    <td>{{ label.label }}</td>
+                                    <td>{{ label.user.name }}</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                              </div>
+                              </div>
+
+                                
+
+
                             </div>
                         </div>
                     </div>
@@ -150,7 +220,42 @@ export default {
     data() {
         return {
             showingNavigationDropdown: false,
+            form: this.$inertia.form({
+                ip_address: '',
+                label: ''
+            }),
+            isIpInvalid: false
         }
     },
+    props: {
+        ips: Object,
+        labels: Object,
+        current_id: null
+        
+    },
+    methods: {
+      getLabels(id){
+        console.log(id);
+        this.$inertia.get('/dashboard/'+id);
+      },
+      submit() {
+
+            // if(!this.form.ip_address.match(/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/g))
+            // {
+            //     this.isIpInvalid = true;
+            //     return false;
+            // }
+            
+            //console.log(this.form);
+            this.form.post(this.route('store'))
+        }
+
+    },
+    created() {
+        
+        //this.labels = this.ips.data
+
+        console.log(this.labels);
+    }
 }
 </script>

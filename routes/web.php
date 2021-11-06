@@ -1,8 +1,11 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Models\Ip;
+use App\Models\Label;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,9 +27,26 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+Route::get('/dashboard/{id?}', function ($id = 0) {
+    
+    if($id){
+        //return $id;
+        $labels = Label::with('user')->where('ip_id', $id)->get();
+        //return $labels;
+    } else {
+        //return 'NONE';
+        $labels = null;
+    }
+    
+    return Inertia::render('Dashboard',[
+        'ips' => Ip::paginate(),
+        'labels' => $labels,
+        'current_id' => $id
+    ]);
 })->name('dashboard');
+
+Route::post('/store',[DashboardController::class, 'store'])->name('store');
+
 
 // Route::get('/dashboard', function () {
 //     return Inertia::render('Dashboard');
