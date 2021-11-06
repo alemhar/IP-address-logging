@@ -24415,7 +24415,7 @@ var appName = ((_window$document$getE = window.document.getElementsByTagName('ti
       render: function render() {
         return (0,vue__WEBPACK_IMPORTED_MODULE_0__.h)(app, props);
       }
-    }).use(plugin).component('InertiaHead', _inertiajs_inertia_vue3__WEBPACK_IMPORTED_MODULE_1__.Head).component('InertiaLink', _inertiajs_inertia_vue3__WEBPACK_IMPORTED_MODULE_1__.Link).mixin({
+    }).use(plugin).mixin({
       methods: {
         route: route
       }
